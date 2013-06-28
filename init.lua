@@ -1,19 +1,19 @@
 minetest.register_node("mini_sun:glow", {
-	--tiles = { "mini_sun_glow.png" },
-	--drawtype = "allfaces",
+	tiles = { "mini_sun_glow.png" },
+	--drawtype = "plantlike",
 	drawtype = "airlike",
 	walkable = false,
 	pointable = false,
-	diggable = true,
+	diggable = false,
 	climbable = false,
 	buildable_to = true,
-	paramtype = light,
+	sunlight_propagates = true,
+	paramtype = "light",
 	light_source = 14,
-	sounds = default.node_sound_glass_defaults(),
 })
 
 minetest.register_craft({
-	output = '"mini_sun:source" 2',
+	output = '"mini_sun:source" 1',
 	recipe = {
 		{'default:glass', 'default:glass', 'default:glass'},
 		{'default:glass', 'default:torch', 'default:glass'},
@@ -28,7 +28,7 @@ minetest.register_node("mini_sun:source", {
 	sounds = default.node_sound_glass_defaults(),
 	drop = "mini_sun:source",
 	light_source = 14,
-	paramtype = light,
+	paramtype = "light",
 	after_place_node = function(pos, placer)
 		minetest.get_node_timer(pos):start(1.1)
 	end,
