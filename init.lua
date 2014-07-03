@@ -1,7 +1,7 @@
 minetest.register_node("mini_sun:glow", {
 	tiles = { "mini_sun_glow.png" },
-	--drawtype = "plantlike",
-	drawtype = "airlike",
+	drawtype = "plantlike",
+	--drawtype = "airlike",
 	walkable = false,
 	pointable = false,
 	diggable = false,
@@ -29,35 +29,62 @@ minetest.register_node("mini_sun:source", {
 	drop = "mini_sun:source",
 	light_source = 14,
 	paramtype = "light",
-	after_place_node = function(pos, placer)
-		minetest.get_node_timer(pos):start(1.1)
-	end,
-	on_destruct = function(pos)
-		minetest.get_node_timer(pos):stop()
-	end,
-	after_destruct = function(pos, oldnode)
+	on_construct = function(pos)
 		local dist = 6
 		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
-		local glow_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:glow")
-		for key, npos in pairs(glow_nodes) do
-			minetest.remove_node(npos)
-			end
-	end,
-	on_timer = function(pos, elapsed)
-		local dist = 6
-		local pmod = (pos.x + pos.y + pos.z) %2 
-		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
-		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
-		local air_nodes = minetest.find_nodes_in_area(minp, maxp, "air")
-		for key, npos in pairs(air_nodes) do
-			if (npos.x + npos.y + npos.z) %2 == pmod then -- 3d checkerboard pattern
-				if grounded(npos) then                      -- against lightable surfaces
-					minetest.add_node(npos, {name = "mini_sun:glow"})
+		
+		local c_air = minetest.get_content_id("air")
+		local c_sun = minetest.get_content_id("mini_sun:glow")
+		 
+		local manip = minetest.get_voxel_manip()
+		local emin, emax = manip:read_from_map(minp, maxp)
+		local area = VoxelArea:new({MinEdge=emin, MaxEdge=emax})
+		local data = manip:get_data()
+		for x = minp.x, maxp.x do
+			for y = minp.y, maxp.y do
+				for z = minp.z, maxp.z do
+					local vi = area:index(x, y, z)
+					if data[vi] == c_air then
+						--if (x + y + z) %2 == pmod then -- 3d checkerboard pattern
+							--if grounded({x=x, y=y, z=z}) then -- against lightable surfaces
+								data[vi] = c_sun
+							--end
+						--end
+					end
 				end
 			end
 		end
-		return true
+		manip:set_data(data)
+		manip:write_to_map()
+		manip:update_map()
+
+	end,
+	on_destruct = function(pos)
+		local dist = 6
+		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
+		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+		
+		local c_air = minetest.get_content_id("air")
+		local c_sun = minetest.get_content_id("mini_sun:glow")
+		 
+		local manip = minetest.get_voxel_manip()
+		local emin, emax = manip:read_from_map(minp, maxp)
+		local area = VoxelArea:new({MinEdge=emin, MaxEdge=emax})
+		local data = manip:get_data()
+		for x = minp.x, maxp.x do
+			for y = minp.y, maxp.y do
+				for z = minp.z, maxp.z do
+					local vi = area:index(x, y, z)
+					if data[vi] == c_sun then
+						data[vi] = c_air
+					end
+				end
+			end
+		end
+		manip:set_data(data)
+		manip:write_to_map()
+		manip:update_map()
 	end,
 })
 
