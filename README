@@ -1,3 +1,3 @@
-Add a light with a greater range than normally possible. Crafted with 8 glasss sorrounding a torch.
+Adds illuminating cube with a greater light range than normally possible. Currently crafted with 8 glass cubes surrounding a torch.
 
-More specifically, when a mini sun is placed, it then fills spaces against walkable surfaces in a 12x12x12 area with a 3d checkerboard pattern of invisiable light nodes of max brightness.
+Technically speaking, when a mini sun is placed, it then fills air nodes against non 'airlike' surfaces in a 6x6x6 area with a 3d checkerboard pattern of invisible light nodes of max brightness.
