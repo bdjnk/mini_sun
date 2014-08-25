@@ -1,7 +1,7 @@
 minetest.register_node("mini_sun:glow", {
 	tiles = { "mini_sun_glow.png" },
-	drawtype = "plantlike",
-	--drawtype = "airlike",
+	--drawtype = "plantlike",
+	drawtype = "airlike",
 	walkable = false,
 	pointable = false,
 	diggable = false,
@@ -127,6 +127,37 @@ minetest.register_node("mini_sun:source", {
 	end,
 })
 
+minetest.register_on_dignode(function(pos, oldnode, digger)
+		local dist = 6
+		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
+		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+
+		local pmod = (pos.x + pos.y + pos.z) % 2
+		local lit = false
+
+		local sun_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:source")
+		for key, npos in pairs(sun_nodes) do
+			if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
+				if not lit and grounded(pos) then -- against lightable surfaces
+					minetest.set_node(pos, {name = "mini_sun:glow"})
+					lit = true
+				end
+				if lit then
+					local meta = minetest.get_meta(pos)
+					
+					local src_str = meta:get_string("sources")
+					local src_tbl = minetest.deserialize(src_str)
+					if not src_tbl then src_tbl = {} end
+					
+					src_tbl[minetest.pos_to_string(npos)] = true
+					src_str = minetest.serialize(src_tbl)
+
+					meta:set_string("sources", src_str)	
+				end
+			end
+		end
+end)
+
 grounded = function(pos)
 	-- checks all nodes touching the edges and corners (but not faces) of the given pos
 	for nx = -1, 1, 2 do
@@ -150,6 +181,14 @@ minetest.register_chatcommand("ms_clear", {
 		dist = 12
 		minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+
+		for x = minp.x, maxp.x do
+			for y = minp.y, maxp.y do
+				for z = minp.z, maxp.z do
+					minetest.get_meta(pos):set_string("sources", nil)	
+				end
+			end
+		end
 
 		local c_air = minetest.get_content_id("air")
 		local c_sun = minetest.get_content_id("mini_sun:glow")
