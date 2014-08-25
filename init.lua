@@ -33,7 +33,9 @@ minetest.register_node("mini_sun:source", {
 		local dist = 6
 		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
-		
+	
+		local pmod = (pos.x + pos.y + pos.z) % 2 
+
 		local c_air = minetest.get_content_id("air")
 		local c_sun = minetest.get_content_id("mini_sun:glow")
 		 
@@ -46,11 +48,11 @@ minetest.register_node("mini_sun:source", {
 				for z = minp.z, maxp.z do
 					local vi = area:index(x, y, z)
 					if data[vi] == c_air then
-						--if (x + y + z) %2 == pmod then -- 3d checkerboard pattern
-							--if grounded({x=x, y=y, z=z}) then -- against lightable surfaces
+						if (x + y + z) % 2 == pmod then -- 3d checkerboard pattern
+							if grounded({x=x, y=y, z=z}) then -- against lightable surfaces
 								data[vi] = c_sun
-							--end
-						--end
+							end
+						end
 					end
 				end
 			end
