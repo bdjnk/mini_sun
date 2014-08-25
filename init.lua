@@ -22,6 +22,7 @@ minetest.register_craft({
 })
 
 minetest.register_node("mini_sun:source", {
+	inventory_image = minetest.inventorycube("mini_sun.png", "mini_sun.png", "mini_sun.png"),
 	tiles = { "mini_sun.png" },
 	drawtype = "glasslike",
 	groups = { cracky=3, oddly_breakable_by_hand=3 },
@@ -165,7 +166,7 @@ grounded = function(pos)
 			for nz = -1, 1, 2 do
 				local npos = { x=pos.x+nx, y=pos.y+ny, z=pos.z+nz }
 				local name = minetest.get_node(npos).name
-				if minetest.registered_nodes[name].walkable and name ~= "mini_sun:source" then
+				if minetest.registered_nodes[name].drawtype ~= "airlike" then
 					return true
 				end
 			end
