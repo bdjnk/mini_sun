@@ -1,3 +1,5 @@
+local range = 6
+
 minetest.register_node("mini_sun:glow", {
 	tiles = { "mini_sun_glow.png" },
 	--drawtype = "plantlike",
@@ -31,7 +33,7 @@ minetest.register_node("mini_sun:source", {
 	light_source = 14,
 	paramtype = "light",
 	on_construct = function(pos)
-		local dist = 6
+		local dist = range
 		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
 	
@@ -79,7 +81,7 @@ minetest.register_node("mini_sun:source", {
 		end
 	end,
 	on_destruct = function(pos)
-		local dist = 6
+		local dist = range
 		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
 		
@@ -105,7 +107,7 @@ minetest.register_node("mini_sun:source", {
 			end
 		end
 
-		dist = 12
+		dist = range+3
 		minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
 
@@ -129,7 +131,7 @@ minetest.register_node("mini_sun:source", {
 })
 
 minetest.register_on_dignode(function(pos, oldnode, digger)
-		local dist = 6
+		local dist = range
 		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
 
@@ -179,7 +181,7 @@ minetest.register_chatcommand("ms_clear", {
 	func = function(name, param)
 		local pos = minetest.get_player_by_name(name):getpos()
 
-		dist = 12
+		dist = range+3
 		minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
 
