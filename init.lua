@@ -2,8 +2,8 @@ local range = 6
 
 minetest.register_node("mini_sun:glow", {
 	tiles = { "mini_sun_glow.png" },
-	drawtype = "plantlike",
-	--drawtype = "airlike",
+	--drawtype = "plantlike",
+	drawtype = "airlike",
 	walkable = false,
 	pointable = false,
 	diggable = false,
