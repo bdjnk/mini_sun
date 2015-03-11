@@ -15,19 +15,20 @@ minetest.register_node("mini_sun:glow", {
 })
 
 minetest.register_craft({
-	output = '"mini_sun:source" 1',
+	output = 'mini_sun:source 1',
 	recipe = {
-		{'default:glass', 'default:glass', 'default:glass'},
-		{'default:glass', 'default:torch', 'default:glass'},
-		{'default:glass', 'default:glass', 'default:glass'},
+		{'default:copper_ingot', 'default:glass', 'default:copper_ingot'},
+		{'default:glass', 'default:mese_crystal', 'default:glass'},
+		{'default:copper_ingot', 'default:glass', 'default:copper_ingot'},
 	}
 })
 
 minetest.register_node("mini_sun:source", {
+	description = "Mini-Sun",
 	inventory_image = minetest.inventorycube("mini_sun.png", "mini_sun.png", "mini_sun.png"),
 	tiles = { "mini_sun.png" },
 	drawtype = "glasslike",
-	groups = { cracky=3, oddly_breakable_by_hand=3 },
+	groups = { snappy=3, oddly_breakable_by_hand=3 },
 	sounds = default.node_sound_glass_defaults(),
 	drop = "mini_sun:source",
 	light_source = 14,
