@@ -1,4 +1,4 @@
-Module for Minetest. Adds illuminating cube with a greater light range than normally possible. Currently crafting recipe:
+Module for Minetest. Adds illuminating cube with a greater light range than normally possible. Crafting recipe:
 
 ```
 copper_ingot  glass         copper_ingot
