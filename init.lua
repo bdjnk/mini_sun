@@ -1,5 +1,21 @@
 local range = 6
 
+local grounded = function(pos)
+	-- checks all nodes touching the edges and corners (but not faces) of the given pos
+	for nx = -1, 1, 2 do
+		for ny = -1, 1, 2 do
+			for nz = -1, 1, 2 do
+				local npos = { x=pos.x+nx, y=pos.y+ny, z=pos.z+nz }
+				local name = minetest.get_node(npos).name
+				if minetest.registered_nodes[name].drawtype ~= "airlike" then
+					return true
+				end
+			end
+		end
+  end
+	return false
+end
+
 minetest.register_node("mini_sun:glow", {
 	tiles = { "mini_sun_glow.png" },
 	--drawtype = "plantlike",
@@ -37,12 +53,12 @@ minetest.register_node("mini_sun:source", {
 		local dist = range
 		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
-	
-		local pmod = (pos.x + pos.y + pos.z) % 2 
+
+		local pmod = (pos.x + pos.y + pos.z) % 2
 
 		local c_air = minetest.get_content_id("air")
 		local c_sun = minetest.get_content_id("mini_sun:glow")
-		 
+
 		local manip = minetest.get_voxel_manip()
 		local emin, emax = manip:read_from_map(minp, maxp)
 		local area = VoxelArea:new({MinEdge=emin, MaxEdge=emax})
@@ -66,14 +82,14 @@ minetest.register_node("mini_sun:source", {
 		manip:update_map()
 
 		local glow_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:glow")
-		for key, npos in pairs(glow_nodes) do
+		for _, npos in pairs(glow_nodes) do
 			if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
 				local meta = minetest.get_meta(npos)
-				
+
 				local src_str = meta:get_string("sources")
 				local src_tbl = minetest.deserialize(src_str)
 				if not src_tbl then src_tbl = {} end
-				
+
 				src_tbl[minetest.pos_to_string(pos)] = true
 				src_str = minetest.serialize(src_tbl)
 
@@ -85,13 +101,13 @@ minetest.register_node("mini_sun:source", {
 		local dist = range
 		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
-		
+
 		local positions = {}
 
-		local pmod = (pos.x + pos.y + pos.z) % 2 
-		
+		local pmod = (pos.x + pos.y + pos.z) % 2
+
 		local glow_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:glow")
-		for key, npos in pairs(glow_nodes) do
+		for _, npos in pairs(glow_nodes) do
 			if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
 				local meta = minetest.get_meta(npos)
 
@@ -114,12 +130,12 @@ minetest.register_node("mini_sun:source", {
 
 		local c_air = minetest.get_content_id("air")
 		local c_sun = minetest.get_content_id("mini_sun:glow")
-		 
+
 		local manip = minetest.get_voxel_manip()
 		local emin, emax = manip:read_from_map(minp, maxp)
 		local area = VoxelArea:new({MinEdge=emin, MaxEdge=emax})
 		local data = manip:get_data()
-		for i, npos in ipairs(positions) do
+		for _, npos in ipairs(positions) do
 			local vi = area:indexp(npos)
 			if data[vi] == c_sun then
 				data[vi] = c_air
@@ -131,7 +147,7 @@ minetest.register_node("mini_sun:source", {
 	end,
 })
 
-minetest.register_on_dignode(function(pos, oldnode, digger)
+minetest.register_on_dignode(function(pos)
 	local dist = range
 	local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 	local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
@@ -155,7 +171,7 @@ minetest.register_on_dignode(function(pos, oldnode, digger)
 
 	local lit = false
 
-	for key, npos in pairs(sun_nodes) do
+	for _, npos in pairs(sun_nodes) do
 		if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
 			if not lit and grounded(pos) then -- against lightable surfaces
 				minetest.set_node(pos, {name = "mini_sun:glow"})
@@ -163,47 +179,48 @@ minetest.register_on_dignode(function(pos, oldnode, digger)
 			end
 			if lit then
 				local meta = minetest.get_meta(pos)
-				
+
 				local src_str = meta:get_string("sources")
 				local src_tbl = minetest.deserialize(src_str)
 				if not src_tbl then src_tbl = {} end
-				
+
 				src_tbl[minetest.pos_to_string(npos)] = true
 				src_str = minetest.serialize(src_tbl)
 
-				meta:set_string("sources", src_str)	
+				meta:set_string("sources", src_str)
 			end
 		end
 	end
 end)
 
-minetest.register_on_placenode(function(pos, newnode, placer, oldnode, itemstack, pointed_thing)
+minetest.register_on_placenode(function(pos, _, _, oldnode)
 
 	if oldnode.name == "air" then
-		
+
 		local dist = range
 		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
 		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
-			
+
 		local sun_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:source")
 
 		if next(sun_nodes) then
 			local rpos
-				for nx = -1, 1, 2 do
-					for ny = -1, 1, 2 do
-						for nz = -1, 1, 2 do
-							local rpos = { x=pos.x+nx, y=pos.y+ny, z=pos.z+nz }
-							local name = minetest.get_node(rpos).name
-							if name == "air" then
-								
-								minp = { x=rpos.x-dist, y=rpos.y-dist, z=rpos.z-dist }
-								maxp = { x=rpos.x+dist, y=rpos.y+dist, z=rpos.z+dist }
+			for nx = -1, 1, 2 do
+				for ny = -1, 1, 2 do
+					for nz = -1, 1, 2 do
+						rpos = { x=pos.x+nx, y=pos.y+ny, z=pos.z+nz }
+						local name = minetest.get_node(rpos).name
+						if name == "air" then
 
-								local pmod = (rpos.x + rpos.y + rpos.z) % 2
-								local lit = false
+							minp = { x=rpos.x-dist, y=rpos.y-dist, z=rpos.z-dist }
+							maxp = { x=rpos.x+dist, y=rpos.y+dist, z=rpos.z+dist }
 
-								local sun_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:source")
-								for key, npos in pairs(sun_nodes) do
+							local pmod = (rpos.x + rpos.y + rpos.z) % 2
+							local lit = false
+
+							-- todo: investigate if this is necessary
+							local other_sun_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:source")
+							for _, npos in pairs(other_sun_nodes) do
 
 								if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
 									if not lit then -- against lightable surfaces
@@ -212,15 +229,15 @@ minetest.register_on_placenode(function(pos, newnode, placer, oldnode, itemstack
 									end
 									if lit then
 										local meta = minetest.get_meta(rpos)
-										
+
 										local src_str = meta:get_string("sources")
 										local src_tbl = minetest.deserialize(src_str)
 										if not src_tbl then src_tbl = {} end
-										
+
 										src_tbl[minetest.pos_to_string(npos)] = true
 										src_str = minetest.serialize(src_tbl)
 
-										meta:set_string("sources", src_str)	
+										meta:set_string("sources", src_str)
 									end
 								end
 							end
@@ -232,41 +249,25 @@ minetest.register_on_placenode(function(pos, newnode, placer, oldnode, itemstack
 	end
 end)
 
-grounded = function(pos)
-	-- checks all nodes touching the edges and corners (but not faces) of the given pos
-	for nx = -1, 1, 2 do
-		for ny = -1, 1, 2 do
-			for nz = -1, 1, 2 do
-				local npos = { x=pos.x+nx, y=pos.y+ny, z=pos.z+nz }
-				local name = minetest.get_node(npos).name
-				if minetest.registered_nodes[name].drawtype ~= "airlike" then
-					return true
-				end
-			end
-		end
-  end
-	return false
-end
-
 minetest.register_chatcommand("ms_clear", {
-	func = function(name, param)
+	func = function(name)
 		local pos = minetest.get_player_by_name(name):getpos()
 
-		dist = range+3
-		minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
-		maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+		local dist = range+3
+		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
+		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
 
 		for x = minp.x, maxp.x do
 			for y = minp.y, maxp.y do
 				for z = minp.z, maxp.z do
-					minetest.get_meta(pos):set_string("sources", nil)	
+					minetest.get_meta({ x, y, z }):set_string("sources", nil)
 				end
 			end
 		end
 
 		local c_air = minetest.get_content_id("air")
 		local c_sun = minetest.get_content_id("mini_sun:glow")
-		 
+
 		local manip = minetest.get_voxel_manip()
 		local emin, emax = manip:read_from_map(minp, maxp)
 		local area = VoxelArea:new({MinEdge=emin, MaxEdge=emax})
