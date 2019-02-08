@@ -50,9 +50,8 @@ minetest.register_node("mini_sun:source", {
 	light_source = 14,
 	paramtype = "light",
 	on_construct = function(pos)
-		local dist = range
-		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
-		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+		local minp = vector.subtract(pos, range)
+		local maxp = vector.add(pos, range)
 
 		local pmod = (pos.x + pos.y + pos.z) % 2
 
@@ -98,9 +97,8 @@ minetest.register_node("mini_sun:source", {
 		end
 	end,
 	on_destruct = function(pos)
-		local dist = range
-		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
-		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+		local minp = vector.subtract(pos, range)
+		local maxp = vector.add(pos, range)
 
 		local positions = {}
 
@@ -124,9 +122,8 @@ minetest.register_node("mini_sun:source", {
 			end
 		end
 
-		dist = range+3
-		minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
-		maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+		minp = vector.subtract(minp, 3)
+		maxp = vector.add(maxp, 3)
 
 		local c_air = minetest.get_content_id("air")
 		local c_sun = minetest.get_content_id("mini_sun:glow")
@@ -148,9 +145,8 @@ minetest.register_node("mini_sun:source", {
 })
 
 minetest.register_on_dignode(function(pos)
-	local dist = range
-	local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
-	local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+	local minp = vector.subtract(pos, range)
+	local maxp = vector.add(pos, range)
 
 	local pmod = (pos.x + pos.y + pos.z) % 2
 	local sun_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:source")
@@ -193,13 +189,36 @@ minetest.register_on_dignode(function(pos)
 	end
 end)
 
-minetest.register_on_placenode(function(pos, _, _, oldnode)
+minetest.register_abm({
+	label = "Wash away glow",
+	nodenames = { "mini_sun:glow" },
+	neighbors = { "group:liquid" },
+	interval = 1,
+	chance = 1,
+	action = function(pos)
+		local faces = {
+			{x= 1, y=0, z= 0},
+			{x=-1, y=0, z= 0},
+			{x= 0, y=0, z= 1},
+			{x= 0, y=0, z=-1},
+			{x= 0, y=1, z= 0}
+		}
+		for _, face in pairs(faces) do
+			local facing = minetest.get_node(vector.add(pos, face))
+			if minetest.get_item_group(facing.name, "liquid") ~= 0 then
+				minetest.remove_node(pos)
+				break
+			end
+		end
+	end,
+})
 
-	if oldnode.name == "air" then
+minetest.register_on_placenode(function(pos, newnode, _, oldnode)
 
-		local dist = range
-		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
-		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+	if oldnode.name == "air" and newnode.name ~= "mini_sun:source" then
+
+		local minp = vector.subtract(pos, range+1)
+		local maxp = vector.add(pos, range+1)
 
 		local sun_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:source")
 
@@ -212,15 +231,10 @@ minetest.register_on_placenode(function(pos, _, _, oldnode)
 						local name = minetest.get_node(rpos).name
 						if name == "air" then
 
-							minp = { x=rpos.x-dist, y=rpos.y-dist, z=rpos.z-dist }
-							maxp = { x=rpos.x+dist, y=rpos.y+dist, z=rpos.z+dist }
-
 							local pmod = (rpos.x + rpos.y + rpos.z) % 2
 							local lit = false
 
-							-- todo: investigate if this is necessary
-							local other_sun_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:source")
-							for _, npos in pairs(other_sun_nodes) do
+							for _, npos in pairs(sun_nodes) do
 
 								if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
 									if not lit then -- against lightable surfaces
@@ -253,9 +267,8 @@ minetest.register_chatcommand("ms_clear", {
 	func = function(name)
 		local pos = minetest.get_player_by_name(name):getpos()
 
-		local dist = range+3
-		local minp = { x=pos.x-dist, y=pos.y-dist, z=pos.z-dist }
-		local maxp = { x=pos.x+dist, y=pos.y+dist, z=pos.z+dist }
+		local minp = vector.subtract(pos, range+3)
+		local maxp = vector.add(pos, range+3)
 
 		for x = minp.x, maxp.x do
 			for y = minp.y, maxp.y do

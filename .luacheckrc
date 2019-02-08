@@ -1,1 +1,1 @@
-globals = { "minetest", "default", "VoxelArea" }
+globals = { "minetest", "default", "VoxelArea", "vector" }
