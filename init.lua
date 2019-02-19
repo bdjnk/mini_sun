@@ -16,6 +16,10 @@ local grounded = function(pos)
 	return false
 end
 
+local checkerboard = function(pos)
+	return (pos.x + pos.y + pos.z) % 2
+end
+
 minetest.register_node("mini_sun:glow", {
 	tiles = { "mini_sun_glow.png" },
 	--drawtype = "plantlike",
@@ -53,7 +57,7 @@ minetest.register_node("mini_sun:source", {
 		local minp = vector.subtract(pos, range)
 		local maxp = vector.add(pos, range)
 
-		local pmod = (pos.x + pos.y + pos.z) % 2
+		local pmod = checkerboard(pos)
 
 		local c_air = minetest.get_content_id("air")
 		local c_sun = minetest.get_content_id("mini_sun:glow")
@@ -82,7 +86,7 @@ minetest.register_node("mini_sun:source", {
 
 		local glow_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:glow")
 		for _, npos in pairs(glow_nodes) do
-			if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
+			if checkerboard(npos) == pmod then -- 3d checkerboard pattern
 				local meta = minetest.get_meta(npos)
 
 				local src_str = meta:get_string("sources")
@@ -102,11 +106,11 @@ minetest.register_node("mini_sun:source", {
 
 		local positions = {}
 
-		local pmod = (pos.x + pos.y + pos.z) % 2
+		local pmod = checkerboard(pos)
 
 		local glow_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:glow")
 		for _, npos in pairs(glow_nodes) do
-			if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
+			if checkerboard(npos) == pmod then -- 3d checkerboard pattern
 				local meta = minetest.get_meta(npos)
 
 				local src_str = meta:get_string("sources")
@@ -148,7 +152,7 @@ minetest.register_on_dignode(function(pos)
 	local minp = vector.subtract(pos, range)
 	local maxp = vector.add(pos, range)
 
-	local pmod = (pos.x + pos.y + pos.z) % 2
+	local pmod = checkerboard(pos)
 	local sun_nodes = minetest.find_nodes_in_area(minp, maxp, "mini_sun:source")
 
 	if next(sun_nodes) then
@@ -168,7 +172,7 @@ minetest.register_on_dignode(function(pos)
 	local lit = false
 
 	for _, npos in pairs(sun_nodes) do
-		if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
+		if checkerboard(npos) == pmod then -- 3d checkerboard pattern
 			if not lit and grounded(pos) then -- against lightable surfaces
 				minetest.set_node(pos, {name = "mini_sun:glow"})
 				lit = true
@@ -231,12 +235,12 @@ minetest.register_on_placenode(function(pos, newnode, _, oldnode)
 						local name = minetest.get_node(rpos).name
 						if name == "air" then
 
-							local pmod = (rpos.x + rpos.y + rpos.z) % 2
+							local pmod = checkerboard(rpos)
 							local lit = false
 
 							for _, npos in pairs(sun_nodes) do
 
-								if (npos.x + npos.y + npos.z) % 2 == pmod then -- 3d checkerboard pattern
+								if checkerboard(npos) == pmod then -- 3d checkerboard pattern
 									if not lit then -- against lightable surfaces
 										minetest.set_node(rpos, {name = "mini_sun:glow"})
 										lit = true
